@@ -1,11 +1,11 @@
 ---
 name: learning-management-system
-description: Build and extend Project LMS, an integrated enterprise Learning Management System delivered module by module. Use for any LMS work - identity and user management (registration, login, JWT/OAuth, RBAC, profiles), subscriptions and commerce, device management, course management, video and offline learning - including screens, architecture, database schema, APIs and code.
+description: Build and extend Project LMS, an integrated enterprise Learning Management System delivered module by module. Use for any LMS work - identity and user management (registration, login, JWT/OAuth, RBAC, profiles), My Learning - including screens, architecture, database schema, APIs and code.
 ---
 
 # Learning Management System (LMS)
 
-Version 1.0.0 · Author: Srinivas R Setlur
+Version 1.3.2 · Author: Srinivas R Setlur
 
 ## Purpose
 Project LMS is one integrated enterprise LMS. Every module integrates through common APIs,
@@ -18,8 +18,7 @@ the modules before it.
 | # | Module | Status | Build it now? |
 |---|--------|--------|---------------|
 | 1 | Identity & User Management | In development | Yes |
-| 2 | Student Subscription and Payment | In development | Yes |
-| 3 | Course Management, Video & Offline Learning | Planned | No - integration hooks only |
+| 3 | My Learning | In development (items added one at a time) | Yes - only the items listed below |
 
 Rules for planned modules:
 - Do not implement a module whose status is Planned.
@@ -63,8 +62,6 @@ Rules for planned modules:
    - Font: Inter (self-hosted through the @fontsource/inter package, no external font request), weights 400-700.
    - Buttons: small and calm, not bright. Soft blue (#4a6cc4, hover #3c5aa8), compact padding (about .45rem x .9rem),
      font size .88rem, weight 500, 8px radius. The same soft blue is used for links and the active menu item.
-   - Plans & Pricing: all plans (Free, Monthly, Annual, Corporate, Enterprise) sit side by side in one row on normal
-     desktop widths; they only wrap onto further rows on narrow screens (below about 1100px).
    - Left menu: compact. Small padding and gaps between items, a narrow column (about 208px), and "Sign out" directly
      under the last menu item, with no large blank space between items or above the Sign out link.
 8. Built with React JS, Java Spring Boot, MySQL and Docker.
@@ -72,9 +69,9 @@ Rules for planned modules:
 ### Contracts Module 1 must expose (used by later modules)
 - Token validation endpoint / middleware that returns user id, organization id and roles.
 - Permission check: can(user, action, resource).
-- Entitlements interface: an empty, documented hook that Module 2 will populate
-  (e.g. which courses or plans a user has access to).
-- Device/session list per user, so Module 2 can enforce device limits.
+- Entitlements interface: an empty, documented hook that later modules will populate
+  (e.g. which courses a user has access to).
+- Device/session list per user, so later modules can enforce device limits.
 
 ### Security requirements
 - Passwords hashed with Argon2 or bcrypt; never logged or returned.
@@ -88,27 +85,61 @@ Rules for planned modules:
 - Registration -> verification -> activation -> login -> reset password works end to end.
 - Another module can protect an endpoint using only the exposed contracts.
 
-## Module 2 - Student Subscription and Payment 
-1.Free, monthly, annual, corporate and enterprise subscription plans.
-2.Course purchase, orders, payment confirmation, invoices, refunds and coupons.
-3.Payment gateway integration architecture for UPI, cards, net banking and international methods.
-4.For Payment gateway use the Razor pay 
-4.Entitlement service controlling access to courses, subscriptions and purchased content.
-5.Mandatory maximum of two dedicated registered devices per learner account.
-6.Device registration, activation, deactivation, replacement, history and audit.
-7.Third-device blocking and device/license validation APIs.
+## Module 3 - My Learning
+Built one item at a time. Each item adds a left-sidebar entry (with an icon), its own page and route, API endpoints
+under /api/v1/learning, and a migration. Only items marked Done exist; do not build the others until asked.
 
-### Module 2 UI rules
-- Module 2 is reached from a dropdown in the header named "Student Subscription and Payment". The dropdown is left-aligned
-  (button at the left of the header, menu opening from its left edge, left-aligned text).
-- The dropdown links are: Plans & Pricing, My Subscription, My Orders, Invoices & Refunds, Coupons, My Devices.
-- Clicking a link opens that page as a new page (its own route, not a modal and not a new browser tab).
-- Every such page shows the heading "Student Subscription and Payment" followed, next to it on the same line, by the
-  name of the link that was clicked, for example: Student Subscription and Payment › My Devices.
-- Admin and finance screens for this module are not in the dropdown; they live in the left sidebar under "Billing & Devices".
+Sidebar groups: **My Learning** holds My Courses and Certificates; **Live Learning** holds Live Sessions, Calendar
+and Ask Mentor (the things that happen with instructors and in real time).
 
-## Module 3 - Course Management, Video & Offline Learning
-Status: Planned - to be added later.
+| Item | Sidebar group | Sidebar entry | Status |
+|------|---------------|---------------|--------|
+| My Courses | My Learning | My Courses | Done |
+| Certificates | My Learning | Certificates | Done |
+| Live Learning (sessions) | Live Learning | Live Sessions | Done |
+| Calendar | Live Learning | Calendar | Done |
+| Ask Mentor | Live Learning | Ask Mentor | Done |
+
+### My Courses (done)
+- Page /my-courses: the learner's enrolled courses as cards (thumbnail, category, title, instructor, lessons, duration,
+  progress bar) with All / In progress / Completed tabs, and an "Explore courses" list with an Enroll button.
+- Resume/Start/Review buttons are disabled until the course player exists.
+- Tables (migration V3__my_learning.sql): courses (catalogue, seeded with 6), enrollments (user, course, status
+  IN_PROGRESS|COMPLETED, progress_percent, last_accessed_at, completed_at; one row per user and course).
+- API: GET /learning/courses, GET /learning/my-courses, POST /learning/courses/{ref}/enroll (idempotent),
+  PUT /learning/my-courses/{ref}/progress (0-100, never goes backwards, 100 completes the course).
+- Enrolment is open to any signed-in user for now. Hook for later: gate it on the entitlement check.
+- Backend code in com.lms.learning, frontend in frontend/src/learning, test LearningFlowTest.
+
+### Certificates (done)
+- Page /certificates: a card per certificate; "View certificate" opens a printable certificate (UNIAISYS logo, learner,
+  course, date, instructor, certificate number) with Print / Save as PDF.
+- Issued automatically, once per learner and course, when course progress reaches 100%. Names are copied into the
+  certificate so it never changes later. Number format UNI-<year>-<6 digits>, unique.
+- Table certificates (migration V4). API: GET /learning/certificates, GET /learning/certificates/{id} (own only).
+
+### Live Learning (done)
+- Page /live-learning: Upcoming and Past tabs; each session shows date badge, title, instructor, time, duration, and
+  Register / Cancel. The join link is returned only to registered learners (joinUrl is empty for the sample data).
+- Sessions belong to a course (live_sessions.course_ref, migration V5). Each session shows its course; sessions for
+  courses the learner is enrolled in are marked "Your course" and listed under a "For my courses" tab, and My Courses
+  cards show the next live session for that course. Sample data: 9 sessions across the 6 courses.
+- Tables live_sessions (dated relative to the migration run) and live_registrations (migrations V4, V5).
+- API: GET /learning/live-sessions, POST and DELETE /learning/live-sessions/{id}/register (idempotent; ended sessions
+  cannot be registered).
+
+### Calendar (done)
+- Page /calendar: month view built on the live sessions. Dates with sessions get a dot, dates with a session the
+  learner registered for are filled blue; picking a date lists that day's sessions with Register / Cancel.
+- No tables or endpoints of its own; it reads GET /learning/live-sessions.
+
+### Ask Mentor (done)
+- Page /ask-mentor: a form (optional course, subject, question) and the learner's questions with status Open or
+  Answered and the mentor's answer.
+- Mentors (Instructor or Super Admin) get a "Mentor inbox" tab listing open questions from all learners, with an
+  answer box. A question can be answered once.
+- Table mentor_questions (migration V4). API: POST and GET /learning/mentor/questions, GET /learning/mentor/inbox and
+  POST /learning/mentor/questions/{id}/answer (mentor roles only, 403 otherwise).
 
 ## Output format (per module)
 - Frontend screens
@@ -121,3 +152,9 @@ Status: Planned - to be added later.
 
 ## Change log
 - 1.0.0 - Module 1 defined; Modules 2 and 3 planned.
+- 1.1.0 - Student Subscription and Payment module removed from this skill.
+- 1.1.1 - Module 3 renamed from "Course Management, Video & Offline Learning" to "My Learning".
+- 1.2.0 - My Courses added (first My Learning item).
+- 1.3.0 - Certificates, Live Learning, Calendar and Ask Mentor added; sidebar gets a My Learning group.
+- 1.3.1 - Sidebar split into My Learning and Live Learning groups.
+- 1.3.2 - Live sessions linked to courses.

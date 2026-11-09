@@ -18,6 +18,11 @@ import Coupons from "./student/Coupons.jsx";
 import Devices from "./student/Devices.jsx";
 import CommerceAdmin from "./student/CommerceAdmin.jsx";
 import Users from './pages/Users.jsx';
+import MyCourses from './learning/MyCourses.jsx';
+import Certificates from './learning/Certificates.jsx';
+import LiveLearning from './learning/LiveLearning.jsx';
+import Calendar from './learning/Calendar.jsx';
+import AskMentor from './learning/AskMentor.jsx';
 
 const BILLING_ROLES = ['SUPER_ADMIN', 'FINANCE_ADMIN', 'SUPPORT_AGENT'];
 
@@ -40,6 +45,11 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<Landing />} />
       <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+      <Route path="/my-courses" element={<Protected><MyCourses /></Protected>} />
+      <Route path="/certificates" element={<Protected><Certificates /></Protected>} />
+      <Route path="/live-learning" element={<Protected><LiveLearning /></Protected>} />
+      <Route path="/calendar" element={<Protected><Calendar /></Protected>} />
+      <Route path="/ask-mentor" element={<Protected><AskMentor /></Protected>} />
       <Route path="/profile" element={<Protected><Profile /></Protected>} />
       <Route path="/security" element={<Protected><Security /></Protected>} />
       <Route path="/users" element={<Protected adminOnly><Users /></Protected>} />

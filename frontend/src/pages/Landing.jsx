@@ -8,6 +8,11 @@ const FEATURES = [
   ['Certifications', 'Earn recognised certificates as you complete courses.'],
 ];
 
+const CATEGORIES = [
+  ['📊', 'Data Science', 'tone-blue'], ['🤖', 'Artificial Intelligence', 'tone-pink'], ['💻', 'Web Development', 'tone-sky'],
+  ['☁️', 'Cloud Computing', 'tone-violet'], ['💼', 'Business & Management', 'tone-amber'], ['🎨', 'Design & Creativity', 'tone-green'],
+];
+
 export default function Landing() {
   const { user, loading } = useAuth();
 
@@ -42,6 +47,11 @@ export default function Landing() {
           <div><b>100K+</b><span className="muted">Learners</span></div>
           <div><b>500+</b><span className="muted">Instructors</span></div>
         </div>
+      </section>
+
+      <h2 className="section-title">Popular Categories</h2>
+      <section className="categories">
+        {CATEGORIES.map(([g, n, tone]) => <div key={n} className={`category ${tone}`}><span className="glyph" aria-hidden="true">{g}</span>{n}</div>)}
       </section>
 
       <section className="landing-features">

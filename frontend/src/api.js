@@ -29,8 +29,8 @@ export class ApiError extends Error {
   }
 }
 
-// Module 2 (commerce) lives next to identity under /api/v1; paths starting with /commerce go there.
-const urlFor = (path) => (path.startsWith('/commerce') ? '/api/v1' : BASE) + path;
+// Other modules live next to identity under /api/v1; paths starting with /commerce or /learning go there.
+const urlFor = (path) => ((path.startsWith('/commerce') || path.startsWith('/learning')) ? '/api/v1' : BASE) + path;
 
 // Learners may use at most two registered devices, so every request says which install it comes from.
 // The id is random, created once per browser and never leaves it except in this header.
